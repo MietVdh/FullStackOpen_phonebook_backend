@@ -1,4 +1,4 @@
-POST http://localhost:3001/api/persons HTTP/1.1
+POST https://fso-phonebook-backend-29035baa1c98.herokuapp.com/api/persons HTTP/1.1
 content-type: application/json
 
 {
