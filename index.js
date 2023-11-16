@@ -66,7 +66,7 @@ app.put('/api/persons/:id', (req, res, next) => {
 
   Person.findByIdAndUpdate(req.params.id, person, {new: true})
   .then(updatedPerson => {
-    response.json(updatedPerson);
+    res.json(updatedPerson);
   })
   .catch(error => next(error));
 
