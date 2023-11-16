@@ -98,13 +98,11 @@ app.post('/api/persons', (req, res) => {
   }
 
   // Name must be unique
-  if (phonebook.find(p => p.name == body.name)) {
-    return res.status(400).json({
-      error: 'Name must be unique'
-    });
-  }
-
-  const newId = Math.floor(Math.random() * 10000);
+  // if (phonebook.find(p => p.name == body.name)) {
+  //   return res.status(400).json({
+  //     error: 'Name must be unique'
+  //   });
+  // }
 
   const person = new Person({
     name: body.name,
@@ -113,9 +111,9 @@ app.post('/api/persons', (req, res) => {
 
   // phonebook = phonebook.concat(person);
   person.save().then(savedPerson => {
-    response.json(savedPerson);
-  })
-  res.json(person);
+    res.json(savedPerson);
+  });
+
 });
 
 
