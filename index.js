@@ -18,32 +18,6 @@ morgan.token('body', function (req, res) {
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 
-// let phonebook = [
-//     {
-//       "id": 1,
-//       "name": "Arto Hellas",
-//       "number": "040-123456"
-//     },
-//     {
-//       "id": 2,
-//       "name": "Ada Lovelace",
-//       "number": "39-44-5323523"
-//     },
-//     {
-//       "id": 3,
-//       "name": "Dan Abramov",
-//       "number": "12-43-234345"
-//     },
-//     {
-//       "id": 4,
-//       "name": "Mary Poppendieck",
-//       "number": "39-23-6423122"
-//     }
-// ];
-
-const phonebook = Person.find({});
-
-
 app.get('/api/persons', (req, res) => {
   Person.find({})
   .then(result => {
@@ -55,30 +29,47 @@ app.get('/api/persons', (req, res) => {
 app.get('/info', (req, res) => {
     const date = new Date();
     res.send(`
-    <p>Phonebook has info for ${phonebook.length} people</p>
+    <p>Phonebook has info for ${Person.find({}).count()} people</p>
     <p>${date}</p>
     `);
 });
 
 
-app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id);
-    Person.findById(id).then(person => {
-      response.json(person);
+app.get('/api/persons/:id', (req, res, next) => {
+    Person.findById(req.params.id)
+    .then(person => {
+      if (person) {
+        res.json(person);
+      } else {
+        res.status(404).end();
+      }
     })
-
+    .catch(error => next(error));
 });
 
-app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const person = phonebook.find(p => p.id === id);
+app.delete('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndDelete(req.params.id)
+  .then(result => {
+    res.status(204).end();
+  })
+  .catch(error => next(error));
+});
 
-  if (person) {
-    phonebook = phonebook.filter(p => p.id !== id);
-    res.status(204).end()
-  } else {
-    res.status(404).end();
+
+app.put('/api/persons/:id', (req, res, next) => {
+  const body = req.body;
+
+  const person = {
+    name: body.name,
+    number: body.number
   }
+
+  Person.findByIdAndUpdate(req.params.id, person, {new: true})
+  .then(updatedPerson => {
+    response.json(updatedPerson);
+  })
+  .catch(error => next(error));
+
 });
 
 
@@ -98,10 +89,9 @@ app.post('/api/persons', (req, res) => {
   }
 
   // Name must be unique
-  // if (phonebook.find(p => p.name == body.name)) {
-  //   return res.status(400).json({
-  //     error: 'Name must be unique'
-  //   });
+  // if (Person.findOne({name: body.name})) {
+  //   const person = Person.findOne({name: body.name});
+  //   const id = person._id;
   // }
 
   const person = new Person({
@@ -115,6 +105,26 @@ app.post('/api/persons', (req, res) => {
   });
 
 });
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+// handler of requests with unknown endpoint
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+
+app.use(errorHandler);
 
 
 const PORT = process.env.PORT;
