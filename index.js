@@ -28,10 +28,14 @@ app.get('/api/persons', (req, res) => {
 
 app.get('/info', (req, res) => {
   const date = new Date()
-  res.send(`
-    <p>Phonebook has info for ${Person.find({}).count()} people</p>
-    <p>${date}</p>
+  Person.countDocuments({}, (err, count) => {
+    if (err) { return errorHandler(err) }
+    console.log(`There are ${count} people in the phonebook`)
+    res.send(`
+      <p>Phonebook has info for ${count} people</p>
+      <p>${date}</p>
     `)
+  })
 })
 
 
