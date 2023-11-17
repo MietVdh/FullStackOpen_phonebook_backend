@@ -10,7 +10,7 @@ app.use(cors())
 app.use(express.static('dist'))
 app.use(express.json())
 
-morgan.token('body', function (req, res) {
+morgan.token('body', function (req) {
   console.log(req.method)
   const body = { name: req.body.name, number: req.body.number }
   return req.method === 'POST' ? JSON.stringify(body) : ''
@@ -49,7 +49,7 @@ app.get('/api/persons/:id', (req, res, next) => {
 
 app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
-    .then(result => {
+    .then(() => {
       res.status(204).end()
     })
     .catch(error => next(error))
